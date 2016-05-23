@@ -11,6 +11,7 @@ namespace Practica3DSCC
     // Referencia tipo "delegate" para función callback ObjectOff
     public delegate void ObjectOffEventHandler();
 
+
     /*
      * Clase SensorProximidad, encapsula el funcionanmiento del sensor de proximidad infrarrojo.
      * Esta clase gestiona los dos componentes del sensor: el LED infrarrojo y el foto-transistor.
@@ -19,25 +20,77 @@ namespace Practica3DSCC
      */
     class SensorProximidad
     {
-        //EVENTO ObjectOff: Disparar este evento cuando el sensor detecte la ausencia del objeto
+        
         public event ObjectOffEventHandler ObjectOff;
 
-        //EVENTO ObjectOn: Disparar este evento cuando el sensor detecte la presencia de un objeto
         public event ObjectOnEventHandler ObjectOn;
+
+        private GT.Timer timer;
+        private bool tip = false;
+
+        /*private enum ESTADO
+        {
+            APAGADO,
+            MONITOREANDO,
+            CAPTURAR
+        }
+
+        ESTADO Estado;*/
+
+        private GT.SocketInterfaces.AnalogInput entrada = null;
+        private GT.SocketInterfaces.DigitalOutput salida = null;
         
         public SensorProximidad(GTM.GHIElectronics.Extender extender)
         {
-            //TODO: Inicializar el sensor
+
+            entrada = extender.CreateAnalogInput(GT.Socket.Pin.Three);
+            salida = extender.CreateDigitalOutput(GT.Socket.Pin.Five, false);
+            timer = new GT.Timer(1000);
+            timer.Tick += timer_Tick;
+            //Estado = ESTADO.APAGADO;  
+        }
+
+        void timer_Tick(GT.Timer timer)
+        {
+            Double voltaje = entrada.ReadVoltage();
+            Debug.Print("Voltaje: " + entrada.ReadVoltage());
+
+            if (voltaje < 1 )
+            {
+                //Estado = ESTADO.CAPTURAR;
+                if (!tip)
+                {
+                    ObjectOn();
+                    tip = true;
+                }
+            }
+            else
+            {
+                //Estado = ESTADO.MONITOREANDO;
+                ObjectOff();
+                tip = false;
+            }
         }
 
         public void StartSampling()
         {
-            //TODO: Activar el LED infrarrojo y empezar a muestrear el foto-transistor
+         
+            Debug.Print("Voltaje: " + entrada.ReadVoltage());
+            salida.Write(true);
+            Debug.Print("Encendido");
+            timer.Start();
+
+            //Estado = ESTADO.MONITOREANDO;
         }
 
         public void StopSampling()
         {
-            //TODO: Desactivar el LED infrarrojo y detener el muestreo del foto-transistor
+            
+            salida.Write(false);
+            Debug.Print("Apagado");
+            timer.Stop();
+
+            //Estado = ESTADO.APAGADO;
         }
     }
 }
