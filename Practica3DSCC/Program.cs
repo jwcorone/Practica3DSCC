@@ -26,9 +26,11 @@ namespace Practica3DSCC
         private GHI.Glide.Display.Window camaraWindow;
         private Button btn_start;
         private Button btn_stop;
-        private SensorProximidad sensor ; 
-             
-    
+        private SensorProximidad sensor ;
+
+        enum Estado { APAGADO, MONITOREAR, CAPTURAR };
+        Estado estado;
+
         void ProgramStarted()
         {
      
@@ -49,22 +51,31 @@ namespace Practica3DSCC
             btn_stop = (Button)controlWindow.GetChildByName("stop");
             btn_start.TapEvent += btn_start_TapEvent;
             btn_stop.TapEvent += btn_stop_TapEvent;
-
-
             
             sensor.ObjectOn += sensor_ObjectOn;
             sensor.ObjectOff += sensor_ObjectOff;  
 
-            
             Glide.MainWindow = controlWindow;
-
-
-           
-
-            
             
         }
 
+        private void cambiarEstado(Estado es)
+        {
+            TextBlock text = (TextBlock)controlWindow.GetChildByName("status");
+            switch (es)
+            {
+                case Estado.APAGADO:
+                    text.Text = "Monitoreo OFF";
+                    Glide.MainWindow = controlWindow;
+                    break;
+                case Estado.MONITOREAR:
+                    text.Text = "Monitoreo ON";
+                    Glide.MainWindow = controlWindow;
+                    break;
+                case Estado.CAPTURAR:
+                    break;
+            }
+        }
         /// <summary>
         /// Evento que activa el streaming de la camara
         /// </summary>
